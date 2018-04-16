@@ -67,41 +67,31 @@ class YearChartCrawl(object):
                 rank, title, artist_name, artist_link, image = self.review_extraction(item)
                 temp_dict = {'rank': rank, 'title': title, 'artist_name': artist_name,
                              'artist_link': artist_link, 'image_link': image}
+                if 'song' in chart_title:
+                    az = Azlyrics(artist_name, title)
+                    lyrics = az.get_lyrics()
+                    temp_dict['lyrics'] = lyrics
                 data_dict[chart_title][rank] = temp_dict
         json_data = json.dumps(data_dict)
         with open('data.json', 'w') as f:
             f.write(json_data)
         print("finished!")
 
-    def lyric_scraping(self, url1):
-        url1 = 'https://www.azlyrics.com/lyrics/{}.html'.format(url1)
-        print(url1)
-        try:
-            url1 = get(url1, headers=self.headers)
-        except Exception:
-            print('error')
-            return
-        page_html = BeautifulSoup(url1.text, 'html.parser')
-        try:
-            section_container = page_html.find('div', {'class': 'col-xs-12 col-lg-8 text-center'})
-            lyric = list(section_container.find_all('div'))[6].text
-            print('----------' + lyric[:5])
-        except AttributeError:
-            print('attribute error')
-
 
 if __name__ == "__main__":
     yc = YearChartCrawl('2017')
-    # yc.data_scraping()
+    yc.data_scraping()
     # yc.lyric_scraping()
-    with open('data.json', 'r') as f:
-        data = json.load(f)
-    for cha in data['hot-100-songs'].items():
-        title = cha[1]['title']
-        name = cha[1]['artist_name']
-        az = Azlyrics(name, title)
-        print(az.format_title())
-        print(az.get_lyrics())
+    # with open('data.json', 'r') as f:
+    #     data = json.load(f)
+    #     for _ in data:
+    #         print(_)
+    # for cha in data['hot-100-songs'].items():
+    #     title = cha[1]['title']
+    #     name = cha[1]['artist_name']
+    #     az = Azlyrics(name, title)
+    #     print(az.format_title())
+    #     print(az.get_lyrics())
 
 
 

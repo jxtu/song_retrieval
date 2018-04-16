@@ -2,6 +2,8 @@ import sys, re
 import urllib.request,  urllib.error
 from bs4 import BeautifulSoup
 from requests import get
+from time import sleep
+from random import randint
 
 
 class Azlyrics(object):
@@ -27,6 +29,7 @@ class Azlyrics(object):
 
     def get_page(self):
         try:
+            sleep(randint(2, 4))
             url = get(self.url(), headers=self.headers)
             return url.text
         except urllib.error.HTTPError as e:
@@ -39,9 +42,10 @@ class Azlyrics(object):
         try:
             section_container = soup.find('div', {'class': 'col-xs-12 col-lg-8 text-center'})
             lyrics = list(section_container.find_all('div'))[6].text
+            print(self.format_title())
         except AttributeError:
-            print("nothing")
-            return
+            print("Lyrics nor found!!")
+            return ''
         return lyrics
 
     def format_lyrics(self, lyrics):
