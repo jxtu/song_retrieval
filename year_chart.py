@@ -1,5 +1,7 @@
 from bs4 import BeautifulSoup
 from requests import get
+from collections import defaultdict
+from lyrics import Azlyrics
 import re
 import json
 from time import sleep
@@ -22,12 +24,15 @@ class YearChartCrawl(object):
         artist_name = items_container.find('div', {'class': 'ye-chart-item__artist'}).text.strip()
         artist_link = items_container.find('div', {'class': 'ye-chart-item-expanded__artist'})
         artist_link = artist_link.a['href'] if artist_link else ''
-        return rank, title, artist_name, artist_link
+        image = items_container.find('div', {'class': 'ye-chart-item__image'}).img['src']
+        image = image.split('/', 4)[-1]  # no need to store the same prefix: 'https://charts-static.billboard.com/img'
+
+        return rank, title, artist_name, artist_link, image
 
     def chart_links(self, orig_url, orig_entry):
         """get links to different charts for a specific year"""
         url = get(orig_url + orig_entry)
-        sleep(randint(1, 3))
+        # sleep(randint(1, 3))
         page_html = BeautifulSoup(url.text, 'html.parser')
         panel = page_html.find('div', {'class': 'chart-panel', 'id': 'overallChartPanel'}).children
         links_list = []
@@ -47,27 +52,56 @@ class YearChartCrawl(object):
         """scrape data from charts for a specific year, and store it as a json file"""
         # TODO: maybe store them in a database
         chart_entries = self.chart_links(self.orig_url, self.orig_entry)
-        data_dict = {}
+        data_dict = defaultdict(dict)
         for entry in chart_entries:
             chart_title = entry.split('/')[-1]
             print("{} ----> done!".format(chart_title))
             url = get(self.orig_url + entry)
-            sleep(randint(1, 3))
+            # sleep(randint(1, 3))
             page_html = BeautifulSoup(url.text, 'html.parser')
             section_container = page_html.find_all('div', {'class': 'chart-details__item-list'})  # 20 items per group
             items_container = []
             for i in range(len(section_container)):
                 items_container.extend(list(section_container[i].find_all('article', {'class': 'ye-chart-item'})))
             for item in items_container:
-                rank, title, artist_name, artist_link = self.review_extraction(item)
-                temp_dict = {'rank': rank, 'title': title, 'artist_name': artist_name, 'artist_link': artist_link}
-                data_dict[chart_title] = temp_dict
+                rank, title, artist_name, artist_link, image = self.review_extraction(item)
+                temp_dict = {'rank': rank, 'title': title, 'artist_name': artist_name,
+                             'artist_link': artist_link, 'image_link': image}
+                data_dict[chart_title][rank] = temp_dict
         json_data = json.dumps(data_dict)
         with open('data.json', 'w') as f:
             f.write(json_data)
         print("finished!")
 
+    def lyric_scraping(self, url1):
+        url1 = 'https://www.azlyrics.com/lyrics/{}.html'.format(url1)
+        print(url1)
+        try:
+            url1 = get(url1, headers=self.headers)
+        except Exception:
+            print('error')
+            return
+        page_html = BeautifulSoup(url1.text, 'html.parser')
+        try:
+            section_container = page_html.find('div', {'class': 'col-xs-12 col-lg-8 text-center'})
+            lyric = list(section_container.find_all('div'))[6].text
+            print('----------' + lyric[:5])
+        except AttributeError:
+            print('attribute error')
+
 
 if __name__ == "__main__":
     yc = YearChartCrawl('2017')
-    yc.data_scraping()
+    # yc.data_scraping()
+    # yc.lyric_scraping()
+    with open('data.json', 'r') as f:
+        data = json.load(f)
+    for cha in data['hot-100-songs'].items():
+        title = cha[1]['title']
+        name = cha[1]['artist_name']
+        az = Azlyrics(name, title)
+        print(az.format_title())
+        print(az.get_lyrics())
+
+
+
