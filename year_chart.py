@@ -2,8 +2,12 @@ from bs4 import BeautifulSoup
 from requests import get
 from collections import defaultdict
 from lyrics import Azlyrics
+from biography import Biography
+from db import DB
+
 import re
 import json
+
 from time import sleep
 from random import randint
 
@@ -67,10 +71,10 @@ class YearChartCrawl(object):
                 rank, title, artist_name, artist_link, image = self.review_extraction(item)
                 temp_dict = {'rank': rank, 'title': title, 'artist_name': artist_name,
                              'artist_link': artist_link, 'image_link': image}
-                if 'song' in chart_title:
-                    az = Azlyrics(artist_name, title)
-                    lyrics = az.get_lyrics()
-                    temp_dict['lyrics'] = lyrics
+                # if 'song' in chart_title:
+                #     az = Azlyrics(artist_name, title)
+                #     lyrics = az.get_lyrics()
+                #     temp_dict['lyrics'] = lyrics
                 data_dict[chart_title][rank] = temp_dict
         json_data = json.dumps(data_dict)
         with open('data.json', 'w') as f:
@@ -79,19 +83,34 @@ class YearChartCrawl(object):
 
 
 if __name__ == "__main__":
-    yc = YearChartCrawl('2017')
-    yc.data_scraping()
+    # yc = YearChartCrawl('2017')
+    # yc.data_scraping()
     # yc.lyric_scraping()
-    # with open('data.json', 'r') as f:
-    #     data = json.load(f)
-    #     for _ in data:
-    #         print(_)
+    mondb = DB('billboard_chart')
+    with open('data.json', 'r') as f:
+        data = json.load(f)
+    for rank in data['hot-100-artists']:
+        name = data['hot-100-artists'][rank]['title']
+        bio = Biography(name)
+        links = bio.poeple_links()
+        abstract = bio.abstract()
+        post = {'artist': name, 'abstract': abstract, 'related_links': links}
+        mondb.db_insert(post, "artist_info")
+        print("done")
+
+
+    # for _ in data['top-artists']:
+    #     name = (data['top-artists'][_]['title'])
+    #     print(name)
     # for cha in data['hot-100-songs'].items():
     #     title = cha[1]['title']
     #     name = cha[1]['artist_name']
     #     az = Azlyrics(name, title)
     #     print(az.format_title())
     #     print(az.get_lyrics())
+    #     bio = Biography(name)
+    #     bio.poeple_links()
+    #     print(bio.abstract())
 
 
 

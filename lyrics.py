@@ -29,7 +29,7 @@ class Azlyrics(object):
 
     def get_page(self):
         try:
-            sleep(randint(2, 4))
+            sleep(randint(1, 3))
             url = get(self.url(), headers=self.headers)
             return url.text
         except urllib.error.HTTPError as e:
