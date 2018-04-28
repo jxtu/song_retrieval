@@ -1,0 +1,34 @@
+<!doctype html>
+
+<body bgcolor="white">
+<title>My search page!</title>
+<style>
+dd {
+    width:100%
+}
+</style>
+<div style="width:100%">
+<h3 style="background-color:black;color:lightgrey"> Wikipedia Film Search </h3>
+
+<h1>Song search page</h1>
+
+
+<form action="/results" name="search" method="post">
+    <dl>
+        <p>Free text search:</p>
+        <dd><textarea rows="4" cols="100" name="description"></textarea>
+        <dd>Search in title: <input type="text" style="width:300px" name="title">
+        <dd>Search in artist: <input type="text" style="width:300px" name="artist">
+        <!--<dd>Search in description: <input type="text" style="width:300px" name="description">-->
+        <dd>Search in charts: <input type="text" style="width:300px" name="charts">
+        <dd>Search in type: <input type="text" style="width:300px" name="type">
+        <dd>Search in album_name: <input type="text" style="width:300px" name="album_name">
+        <dd>Search in song_name: <input type="text" style="width:300px" name="song_name">
+        <dd>Search in category: <input type="text" style="width:300px" name="category">
+        <dd>Search in rank: <input type="text" style="width:300px" name="rank">
+        <!--<dd>Runtime: min <input type="text" name="mintime"> max <input type="text" name="maxtime">-->
+        <dd><input type="submit" value="Search">
+    </dl>
+</form>
+</div>
+</body>
